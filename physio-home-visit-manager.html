@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Physio Home Visit">
+<title>Physio Home Visit Manager</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f7f8;color:#17323a}
+header{background:linear-gradient(135deg,#0f766e,#0b5f59);color:#fff;padding:20px 16px 24px;border-radius:0 0 24px 24px}
+header h1{margin:0;font-size:23px}header p{margin:6px 0 0;opacity:.9;font-size:13px}
+nav{display:flex;gap:7px;overflow:auto;padding:10px;background:#fff;position:sticky;top:0;z-index:5;box-shadow:0 2px 8px #0000000d}
+nav button{border:0;background:#eef5f4;color:#175b56;padding:9px 12px;border-radius:20px;white-space:nowrap;font-weight:700}
+nav button.active{background:#0f766e;color:#fff}
+main{padding:14px;max-width:900px;margin:auto}.page{display:none}.page.active{display:block}
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.card{background:#fff;border-radius:16px;padding:15px;box-shadow:0 2px 10px #17323a12}.card small{color:#6b7e83}.value{font-size:25px;font-weight:800;margin-top:5px;color:#0f766e}
+.section-title{display:flex;justify-content:space-between;align-items:center;margin:18px 2px 9px}.section-title h2{font-size:18px;margin:0}
+.btn{border:0;border-radius:12px;padding:11px 14px;background:#0f766e;color:#fff;font-weight:700;cursor:pointer}.btn.secondary{background:#e5efee;color:#0f625d}.btn.danger{background:#b42318}
+form,.panel{background:#fff;padding:15px;border-radius:16px;box-shadow:0 2px 10px #17323a12}
+label{font-size:13px;font-weight:700;display:block;margin:9px 0 5px}input,select,textarea{width:100%;padding:11px;border:1px solid #d5e0e1;border-radius:10px;font-size:14px;background:#fff}textarea{min-height:70px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.full{grid-column:1/-1}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.list{display:grid;gap:10px}.item{background:#fff;border-radius:14px;padding:13px;box-shadow:0 2px 8px #17323a10}.item strong{font-size:16px}.muted{color:#6d7e83;font-size:13px}.row{display:flex;justify-content:space-between;gap:10px;align-items:center}.pill{padding:4px 8px;border-radius:12px;font-size:11px;font-weight:700;background:#e6f4ef;color:#0f766e}.due{background:#fff1f0;color:#b42318}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden}th,td{padding:9px;border-bottom:1px solid #edf1f2;text-align:left;font-size:12px}th{background:#eef5f4}
+.empty{text-align:center;color:#718087;padding:30px}.search{margin-bottom:10px}
+footer{text-align:center;color:#718087;font-size:11px;padding:25px}
+@media(min-width:700px){.cards{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<header>
+<h1>🩺 Physio Home Visit Manager</h1>
+<p>Home Visit • Patient • Session • Finance • Reports</p>
+</header>
+
+<nav id="nav">
+<button class="active" onclick="showPage('dashboard',this)">🏠 Dashboard</button>
+<button onclick="showPage('patients',this)">👥 Patients</button>
+<button onclick="showPage('visit',this)">➕ New Visit</button>
+<button onclick="showPage('history',this)">📅 History</button>
+<button onclick="showPage('finance',this)">💰 Finance</button>
+<button onclick="showPage('reports',this)">📊 Reports</button>
+</nav>
+
+<main>
+<section id="dashboard" class="page active">
+<div class="section-title"><h2>Today</h2><span id="todayText"></span></div>
+<div class="cards">
+<div class="card"><small>Today's Patients</small><div class="value" id="todayPatients">0</div></div>
+<div class="card"><small>Today's Sessions</small><div class="value" id="todaySessions">0</div></div>
+<div class="card"><small>Today's Income</small><div class="value" id="todayIncome">৳0</div></div>
+<div class="card"><small>Total Due</small><div class="value" id="totalDue">৳0</div></div>
+</div>
+<div class="section-title"><h2>This Month</h2></div>
+<div class="cards">
+<div class="card"><small>Unique Patients</small><div class="value" id="monthPatients">0</div></div>
+<div class="card"><small>Sessions</small><div class="value" id="monthSessions">0</div></div>
+<div class="card"><small>Income</small><div class="value" id="monthIncome">৳0</div></div>
+<div class="card"><small>Net Income</small><div class="value" id="monthNet">৳0</div></div>
+</div>
+<div class="section-title"><h2>Therapist Summary</h2></div>
+<div class="cards">
+<div class="card"><small>Md Ariful Islam PT</small><div class="value" id="arifulIncome">৳0</div><div class="muted" id="arifulSessions">0 sessions</div></div>
+<div class="card"><small>Most. Sargina Akter PT</small><div class="value" id="sarginaIncome">৳0</div><div class="muted" id="sarginaSessions">0 sessions</div></div>
+</div>
+</section>
+
+<section id="patients" class="page">
+<div class="section-title"><h2>Patient Management</h2><button class="btn" onclick="showPage('visit')">+ Add Visit</button></div>
+<input class="search" id="patientSearch" placeholder="Search patient name or mobile..." oninput="renderPatients()">
+<div id="patientList" class="list"></div>
+</section>
+
+<section id="visit" class="page">
+<div class="section-title"><h2>New Home Visit</h2></div>
+<form id="visitForm">
+<div class="grid2">
+<div class="full"><label>Patient</label><select id="patientId" required></select></div>
+<div><label>Therapist</label><select id="therapist" required><option>Md Ariful Islam PT</option><option>Most. Sargina Akter PT</option></select></div>
+<div><label>Date</label><input type="date" id="visitDate" required></div>
+<div><label>Session Number</label><input type="number" id="sessionNo" min="1" value="1" required></div>
+<div><label>Visit Fee (৳)</label><input type="number" id="fee" min="0" value="800" required></div>
+<div><label>Payment</label><select id="payment"><option value="paid">Paid</option><option value="due">Due</option></select></div>
+<div><label>Payment Method</label><select id="method"><option>Cash</option><option>bKash</option><option>Nagad</option><option>Bank</option><option>Other</option></select></div>
+<div class="full"><label>Condition / Treatment Note</label><textarea id="note" placeholder="e.g. Low back pain, exercise, manual therapy..."></textarea></div>
+</div>
+<div class="actions"><button class="btn" type="submit">Save Home Visit</button><button class="btn secondary" type="reset">Reset</button></div>
+</form>
+<div class="section-title"><h2>New Patient</h2></div>
+<form id="patientForm">
+<div class="grid2">
+<div><label>Patient Name</label><input id="pname" required></div>
+<div><label>Mobile</label><input id="pmobile"></div>
+<div><label>Age</label><input id="page" type="number"></div>
+<div><label>Sex</label><select id="psex"><option>Male</option><option>Female</option><option>Other</option></select></div>
+<div><label>Address</label><input id="paddress"></div>
+<div><label>Diagnosis / Problem</label><input id="pdiagnosis"></div>
+</div>
+<div class="actions"><button class="btn" type="submit">Add Patient</button></div>
+</form>
+</section>
+
+<section id="history" class="page">
+<div class="section-title"><h2>Visit History</h2></div>
+<div id="historyList" class="list"></div>
+</section>
+
+<section id="finance" class="page">
+<div class="section-title"><h2>Finance</h2></div>
+<div class="cards">
+<div class="card"><small>Total Paid</small><div class="value" id="fPaid">৳0</div></div>
+<div class="card"><small>Total Due</small><div class="value" id="fDue">৳0</div></div>
+<div class="card"><small>Total Income</small><div class="value" id="fTotal">৳0</div></div>
+</div>
+<div class="section-title"><h2>Payment Records</h2></div>
+<div id="financeList" class="list"></div>
+</section>
+
+<section id="reports" class="page">
+<div class="section-title"><h2>Reports</h2></div>
+<div class="panel">
+<label>Year</label><select id="reportYear" onchange="renderReports()"></select>
+</div>
+<div class="section-title"><h2>Year Summary</h2></div>
+<div class="cards">
+<div class="card"><small>Unique Patients</small><div class="value" id="rPatients">0</div></div>
+<div class="card"><small>Total Sessions</small><div class="value" id="rSessions">0</div></div>
+<div class="card"><small>Total Income</small><div class="value" id="rIncome">৳0</div></div>
+<div class="card"><small>Paid</small><div class="value" id="rPaid">৳0</div></div>
+</div>
+<div class="section-title"><h2>Monthly Report</h2></div>
+<table><thead><tr><th>Month</th><th>Patients</th><th>Sessions</th><th>Income</th></tr></thead><tbody id="monthlyBody"></tbody></table>
+</section>
+</main>
+<footer>Physio Home Visit Manager • Data is stored in this browser</footer>
+
+<script>
+const KEY='physio_home_visit_v1';
+let db=JSON.parse(localStorage.getItem(KEY)||'{"patients":[],"visits":[]}');
+
+function save(){localStorage.setItem(KEY,JSON.stringify(db));}
+function money(n){return '৳'+Number(n||0).toLocaleString('en-BD');}
+function today(){return new Date().toISOString().slice(0,10)}
+function monthKey(d){return d.slice(0,7)}
+function showPage(id,btn){
+ document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+ document.getElementById(id).classList.add('active');
+ document.querySelectorAll('#nav button').forEach(x=>x.classList.remove('active'));
+ if(btn)btn.classList.add('active');
+ if(id==='patients')renderPatients();
+ if(id==='visit')populatePatients();
+ if(id==='history')renderHistory();
+ if(id==='finance')renderFinance();
+ if(id==='reports')renderReports();
+ updateDashboard();
+}
+function updateDashboard(){
+ const t=today(), m=monthKey(t);
+ const tv=db.visits.filter(v=>v.date===t), mv=db.visits.filter(v=>monthKey(v.date)===m);
+ const uniq=a=>new Set(a.map(v=>v.patientId)).size;
+ const sum=(a)=>a.reduce((s,v)=>s+Number(v.fee||0),0);
+ document.getElementById('todayText').textContent=t;
+ document.getElementById('todayPatients').textContent=uniq(tv);
+ document.getElementById('todaySessions').textContent=tv.length;
+ document.getElementById('todayIncome').textContent=money(sum(tv.filter(v=>v.payment==='paid')));
+ document.getElementById('totalDue').textContent=money(sum(db.visits.filter(v=>v.payment==='due')));
+ document.getElementById('monthPatients').textContent=uniq(mv);
+ document.getElementById('monthSessions').textContent=mv.length;
+ document.getElementById('monthIncome').textContent=money(sum(mv.filter(v=>v.payment==='paid')));
+ document.getElementById('monthNet').textContent=money(sum(mv.filter(v=>v.payment==='paid')));
+ const a=mv.filter(v=>v.therapist==='Md Ariful Islam PT'), s=mv.filter(v=>v.therapist==='Most. Sargina Akter PT');
+ document.getElementById('arifulIncome').textContent=money(sum(a.filter(v=>v.payment==='paid')));
+ document.getElementById('arifulSessions').textContent=a.length+' sessions';
+ document.getElementById('sarginaIncome').textContent=money(sum(s.filter(v=>v.payment==='paid')));
+ document.getElementById('sarginaSessions').textContent=s.length+' sessions';
+}
+function populatePatients(){
+ const sel=document.getElementById('patientId');
+ sel.innerHTML='<option value="">Select patient</option>'+db.patients.map(p=>`<option value="${p.id}">${esc(p.name)}${p.mobile?' — '+esc(p.mobile):''}</option>`).join('');
+ document.getElementById('visitDate').value=today();
+}
+function renderPatients(){
+ const q=(document.getElementById('patientSearch')?.value||'').toLowerCase();
+ const list=db.patients.filter(p=>(p.name+' '+p.mobile).toLowerCase().includes(q));
+ const box=document.getElementById('patientList');
+ if(!list.length){box.innerHTML='<div class="empty">No patients found.</div>';return}
+ box.innerHTML=list.map(p=>{
+   const vs=db.visits.filter(v=>v.patientId===p.id), total=vs.reduce((s,v)=>s+Number(v.fee||0),0), due=vs.filter(v=>v.payment==='due').reduce((s,v)=>s+Number(v.fee||0),0);
+   return `<div class="item"><div class="row"><strong>${esc(p.name)}</strong><span class="pill">${vs.length} sessions</span></div>
+   <div class="muted">${esc(p.diagnosis||'')} • ${esc(p.mobile||'No mobile')}</div>
+   <div class="muted">${esc(p.address||'')} ${p.age?'• '+p.age+' yrs':''}</div>
+   <div class="row" style="margin-top:8px"><span>Total ${money(total)}</span><span class="${due?'pill due':'pill'}">${due?money(due)+' due':'Paid'}</span></div></div>`
+ }).join('');
+}
+function renderHistory(){
+ const box=document.getElementById('historyList'), arr=[...db.visits].sort((a,b)=>b.date.localeCompare(a.date));
+ if(!arr.length){box.innerHTML='<div class="empty">No visits recorded.</div>';return}
+ box.innerHTML=arr.map(v=>{const p=db.patients.find(x=>x.id===v.patientId)||{name:'Deleted patient'};
+ return `<div class="item"><div class="row"><strong>${esc(p.name)}</strong><span class="pill ${v.payment==='due'?'due':''}">${v.payment==='paid'?'Paid':'Due'}</span></div>
+ <div class="muted">${v.date} • Session ${v.sessionNo} • ${esc(v.therapist)}</div>
+ <div style="margin-top:7px">${money(v.fee)} • ${esc(v.method||'')} </div>
+ <div class="muted">${esc(v.note||'')}</div></div>`}).join('');
+}
+function renderFinance(){
+ const paid=db.visits.filter(v=>v.payment==='paid').reduce((s,v)=>s+Number(v.fee||0),0);
+ const due=db.visits.filter(v=>v.payment==='due').reduce((s,v)=>s+Number(v.fee||0),0);
+ document.getElementById('fPaid').textContent=money(paid);document.getElementById('fDue').textContent=money(due);document.getElementById('fTotal').textContent=money(paid+due);
+ document.getElementById('financeList').innerHTML=[...db.visits].sort((a,b)=>b.date.localeCompare(a.date)).map(v=>{
+ const p=db.patients.find(x=>x.id===v.patientId)||{name:'Unknown'};
+ return `<div class="item"><div class="row"><strong>${esc(p.name)}</strong><span class="${v.payment==='due'?'pill due':'pill'}">${v.payment==='paid'?'Paid':'Due'}</span></div><div class="muted">${v.date} • ${esc(v.therapist)}</div><div style="margin-top:6px">${money(v.fee)} • ${esc(v.method||'')}</div></div>`
+ }).join('')||'<div class="empty">No financial records.</div>';
+}
+function renderReports(){
+ const y=new Date().getFullYear();
+ const sel=document.getElementById('reportYear');
+ const years=[...new Set(db.visits.map(v=>v.date.slice(0,4)).concat([String(y)]))].sort().reverse();
+ sel.innerHTML=years.map(x=>`<option>${x}</option>`).join('');
+ const year=sel.value||String(y), arr=db.visits.filter(v=>v.date.startsWith(year));
+ const sum=a=>a.reduce((s,v)=>s+Number(v.fee||0),0);
+ document.getElementById('rPatients').textContent=new Set(arr.map(v=>v.patientId)).size;
+ document.getElementById('rSessions').textContent=arr.length;
+ document.getElementById('rIncome').textContent=money(sum(arr));
+ document.getElementById('rPaid').textContent=money(sum(arr.filter(v=>v.payment==='paid')));
+ document.getElementById('monthlyBody').innerHTML=Array.from({length:12},(_,i)=>{
+ const mm=String(i+1).padStart(2,'0'), a=arr.filter(v=>v.date.slice(5,7)===mm);
+ return `<tr><td>${new Date(year,i,1).toLocaleString('en',{month:'long'})}</td><td>${new Set(a.map(v=>v.patientId)).size}</td><td>${a.length}</td><td>${money(sum(a.filter(v=>v.payment==='paid')))}</td></tr>`
+ }).join('');
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+document.getElementById('patientForm').addEventListener('submit',e=>{
+ e.preventDefault();
+ db.patients.push({id:crypto.randomUUID(),name:document.getElementById('pname').value.trim(),mobile:document.getElementById('pmobile').value.trim(),age:document.getElementById('page').value,sex:document.getElementById('psex').value,address:document.getElementById('paddress').value.trim(),diagnosis:document.getElementById('pdiagnosis').value.trim()});
+ save();e.target.reset();populatePatients();alert('Patient added successfully.');renderPatients();updateDashboard();
+});
+document.getElementById('visitForm').addEventListener('submit',e=>{
+ e.preventDefault();
+ const id=document.getElementById('patientId').value;if(!id)return alert('Please select a patient.');
+ const v={id:crypto.randomUUID(),patientId:id,therapist:document.getElementById('therapist').value,date:document.getElementById('visitDate').value,sessionNo:document.getElementById('sessionNo').value,fee:Number(document.getElementById('fee').value||0),payment:document.getElementById('payment').value,method:document.getElementById('method').value,note:document.getElementById('note').value.trim()};
+ db.visits.push(v);save();alert('Home visit saved successfully.');e.target.reset();populatePatients();updateDashboard();
+});
+document.getElementById('todayText').textContent=today();updateDashboard();
+</script>
+</body>
+</html>
